@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Стикеры и Картинки — Drag and Drop</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .app-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .panel {
+            background: #d9e2ec;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        
+        .sticker-field-panel {
+            width: 320px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0 8px 0;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input[type="text"]:focus { border-color: #3182ce; }
+
+      
+        button {
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            transition: background 0.2s, transform 0.1s;
+            color: #fff;
+        }
+
+        button:active { transform: scale(0.97); }
+
+        .btn-add {
+            padding: 10px 15px;
+            background: #3182ce;
+            font-size: 14px;
+        }
+        .btn-add:hover { background: #2b6cb0; }
+
+        .btn-add-img {
+            padding: 10px 15px;
+            background: #38a169;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .btn-add-img:hover { background: #2f855a; }
+
+        .btn-clear {
+            padding: 6px 12px;
+            background: #e53e3e;
+            font-size: 12px;
+        }
+        .btn-clear:hover { background: #c53030; }
+
+        
+        .sticker-list, .image-list {
+            min-height: 120px;
+            background: #eef2f7;
+            border: 2px dashed #a0aec0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .sticker-list { flex-direction: column; min-height: 200px; }
+        .image-list { min-height: 150px; }
+
+        
+        .board-panel { width: 600px; }
+
+        .board-area {
+            position: relative;
+            min-height: 500px;
+            background: #fdfbf7;
+            border: 4px solid #d9b38c;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        
+        .sticker {
+            width: 140px;
+            min-height: 100px;
+            background: #fef08a;
+            color: #333;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            word-wrap: break-word;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+
+        .sticker-list .sticker {
+            position: relative;
+            cursor: grab;
+            width: 100%;
+            min-height: 60px;
+        }
+
+        
+        .image-item {
+            width: 100px;
+            height: 100px;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            border: 2px solid #fff;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+       
+        .sticker-list .sticker:active,
+        .image-list .image-item:active { cursor: grabbing; }
+
+        .board-area .sticker,
+        .board-area .image-item {
+            position: absolute;
+            z-index: 10;
+            cursor: grab;
+        }
+        .board-area .sticker:active,
+        .board-area .image-item:active {
+            cursor: grabbing;
+            z-index: 100;
+        }
+
+        .dragging {
+            opacity: 0.6;
+            box-shadow: 4px 8px 16px rgba(0,0,0,0.3);
+        }
+
+        
+        .delete-btn {
+            background: transparent;
+            color: #c53030;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 4px;
+            box-shadow: none;
+            cursor: pointer;
+            border-radius: 4px;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            z-index: 20;
+        }
+
+        .delete-btn:hover { background: rgba(197, 48, 48, 0.1); }
+
+        .sticker-text {
+            pointer-events: none;
+            width: 100%;
+            padding-right: 10px;
+        }
+
+        @media (max-width: 950px) {
+            .app-container { flex-direction: column; align-items: center; }
+            .board-panel { width: 100%; max-width: 600px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Стикеры и Картинки — Drag and Drop</h1>
+
+    <div class="app-container">
+        
+        
+        <div class="panel sticker-field-panel">
+            <div class="panel-header">
+                <h3>Поле контента</h3>
+                <button class="btn-clear" onclick="clearStickerField()">Очистить всё</button>
+            </div>
+            
+            
+            <div class="section-title">📝 Стикеры</div>
+            <div class="input-group">
+                <input type="text" id="stickerInput" placeholder="Текст стикера...">
+                <button class="btn-add" onclick="addSticker()">Добавить</button>
+            </div>
+            <div class="sticker-list" id="stickerList"></div>
+
+            
+            <div class="section-title">🖼️ Картинки</div>
+            <button class="btn-add-img" onclick="addImage()">Добавить картинку</button>
+            <div class="image-list" id="imageList"></div>
+        </div>
+
+       
+        <div class="panel board-panel">
+            <div class="panel-header">
+                <h3>Борд (свободное перемещение)</h3>
+                <button class="btn-clear" onclick="clearBoard()">Очистить борд</button>
+            </div>
+            
+            <div class="board-area" id="boardArea"></div>
+        </div>
+
+    </div>
+
+    <script>
+        
+        function addSticker() {
+            const input = document.getElementById('stickerInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const stickerList = document.getElementById('stickerList');
+            const sticker = document.createElement('div');
+            sticker.className = 'sticker';
+            sticker.draggable = true;
+            sticker.innerHTML = `
+                <span class="sticker-text">${text}</span>
+                <button class="delete-btn" title="Удалить">×</button>
+            `;
+
+            input.value = '';
+            input.focus();
+            stickerList.appendChild(sticker);
+        }
+
+        
+        function addImage() {
+            const imageList = document.getElementById('imageList');
+            
+            
+            const images = [
+                'https://picsum.photos/id/237/200/200', 
+                'https://picsum.photos/id/1025/200/200', 
+                'https://picsum.photos/id/1/200/200', 
+                'https://picsum.photos/id/10/200/200', 
+                'https://picsum.photos/id/100/200/200',
+                'https://picsum.photos/id/20/200/200'  
+            ];
+            
+            const randomImg = images[Math.floor(Math.random() * images.length)];
+
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.draggable = true;
+            imageItem.innerHTML = `
+                <img src="${randomImg}" alt="Картинка">
+                <button class="delete-btn" title="Удалить">×</button>
+            `;
+
+            imageList.appendChild(imageItem);
+        }
+
+       
+        function clearStickerField() {
+            if (confirm('Удалить все стикеры и картинки с этого поля?')) {
+                document.getElementById('stickerList').innerHTML = '';
+                document.getElementById('imageList').innerHTML = '';
+            }
+        }
+
+        
+        function clearBoard() {
+            if (confirm('Очистить борд?')) {
+                document.getElementById('boardArea').innerHTML = '';
+            }
+        }
+
+        
+
+        let draggedItem = null;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        
+        document.addEventListener('dragstart', (e) => {
+            const item = e.target.closest('.sticker, .image-item');
+            if (!item) return;
+
+            draggedItem = item;
+            item.classList.add('dragging');
+
+            e.dataTransfer.setData('text/plain', 'item');
+            e.dataTransfer.effectAllowed = 'move';
+
+            const rect = item.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+        });
+
+        
+        document.addEventListener('dragend', () => {
+            if (draggedItem) {
+                draggedItem.classList.remove('dragging');
+                draggedItem = null;
+            }
+        });
+
+        
+        const boardArea = document.getElementById('boardArea');
+        boardArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        
+        boardArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!draggedItem) return;
+
+            const boardRect = boardArea.getBoundingClientRect();
+            let newLeft = e.clientX - boardRect.left - offsetX;
+            let newTop = e.clientY - boardRect.top - offsetY;
+
+            
+            newLeft = Math.max(0, Math.min(newLeft, boardArea.clientWidth - draggedItem.offsetWidth));
+            newTop = Math.max(0, Math.min(newTop, boardArea.clientHeight - draggedItem.offsetHeight));
+
+            boardArea.appendChild(draggedItem);
+
+            draggedItem.style.left = newLeft + 'px';
+            draggedItem.style.top = newTop + 'px';
+            
+            
+            if (draggedItem.classList.contains('sticker')) {
+                draggedItem.style.width = '140px';
+                draggedItem.style.minHeight = '100px';
+            } else {
+                draggedItem.style.width = '100px';
+                draggedItem.style.height = '100px';
+            }
+        });
+
+        
+        const stickerList = document.getElementById('stickerList');
+        const imageList = document.getElementById('imageList');
+
+        [stickerList, imageList].forEach(list => {
+            list.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            list.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                
+                draggedItem.style.left = '';
+                draggedItem.style.top = '';
+                
+                if (draggedItem.classList.contains('sticker')) {
+                    draggedItem.style.width = '100%';
+                    draggedItem.style.minHeight = '60px';
+                    stickerList.appendChild(draggedItem);
+                } else {
+                    draggedItem.style.width = '100px';
+                    draggedItem.style.height = '100px';
+                    imageList.appendChild(draggedItem);
+                }
+            });
+        });
+
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const item = e.target.closest('.sticker, .image-item');
+                if (item) item.remove();
+            }
+        });
+
+        document.getElementById('stickerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addSticker();
+        });
+    </script>
+
+</body>
+</html>
